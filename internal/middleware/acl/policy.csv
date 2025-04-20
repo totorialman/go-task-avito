@@ -1,0 +1,10 @@
+p, moderator, /pvz, POST
+p, employee, /intake, POST
+p, employee, /intake, PUT
+p, employee, /product, POST
+p, employee, /product, DELETE
+p, moderator, /pvz/filter, GET
+p, employee, /pvz/filter, GET
+
+g, alice@example.com, moderator
+g, bob@example.com, employee

@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package pvz.v1;
+
+option go_package = "github.com/totorialman/go-task-avito/gen;pvz_v1";
+
+import "google/protobuf/timestamp.proto";
+
+// ===== gRPC-сервис =====
+service PVZService {
+  // Получение ПВЗ с приёмками и товарами (с фильтрацией и пагинацией)
+  rpc GetPVZList(GetPVZListRequest) returns (GetPVZListResponse);
+
+  // Получение всех ПВЗ (без авторизации, доп. задание)
+  rpc GetAllPVZ(GetAllPVZRequest) returns (GetAllPVZResponse);
+}
+
+// ===== Сущности =====
+
+message PVZ {
+  string id = 1;
+  google.protobuf.Timestamp registration_date = 2;
+  string city = 3;
+}
+
+message Reception {
+  string id = 1;
+  google.protobuf.Timestamp date_time = 2;
+  string pvz_id = 3;
+  ReceptionStatus status = 4;
+}
+
+message Product {
+  string id = 1;
+  google.protobuf.Timestamp date_time = 2;
+  ProductType type = 3;
+  string reception_id = 4;
+}
+
+// ===== Перечисления =====
+
+enum ReceptionStatus {
+  RECEPTION_STATUS_IN_PROGRESS = 0;
+  RECEPTION_STATUS_CLOSED = 1;
+}
+
+enum ProductType {
+  PRODUCT_TYPE_ELECTRONICS = 0;
+  PRODUCT_TYPE_CLOTHING = 1;
+  PRODUCT_TYPE_SHOES = 2;
+}
+
+// ===== Запросы / Ответы =====
+
+message GetPVZListRequest {
+  google.protobuf.Timestamp start_date = 1;
+  google.protobuf.Timestamp end_date = 2;
+  uint32 page = 3;
+  uint32 limit = 4;
+}
+
+message GetPVZListResponse {
+  repeated PVZWithReceptions pvzs = 1;
+}
+
+message PVZWithReceptions {
+  PVZ pvz = 1;
+  repeated ReceptionWithProducts receptions = 2;
+}
+
+message ReceptionWithProducts {
+  Reception reception = 1;
+  repeated Product products = 2;
+}
+
+message GetAllPVZRequest {}
+
+message GetAllPVZResponse {
+  repeated PVZ pvzs = 1;
+}
