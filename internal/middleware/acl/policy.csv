@@ -1,0 +1,5 @@
+p, moderator, /pvz, POST
+p, employee, /receptions, POST
+p, employee, /products, POST
+p, employee, /pvz/:pvzId/delete_last_product, POST
+p, employee, /pvz/:pvzId/close_last_reception, POST
