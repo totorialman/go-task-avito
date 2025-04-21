@@ -39,6 +39,14 @@ func NewProductMetrics() (*ProductMetrics, error) {
 
 	return &metr, nil
 }
-func (m *ProductMetrics) IncreaseHits() {
+func (m *ProductMetrics) IncreaseHitsReTotal() {
 	m.ReTotal.Inc()
+}
+
+func (m *ProductMetrics) IncreaseHitsPVZTotal() {
+	m.PVZTotal.Inc()
+}
+
+func (m *ProductMetrics) IncreaseHitsProductTotal() {
+	m.ProductTotal.Inc()
 }

@@ -64,7 +64,7 @@ func (h *PVZHandler) HandleCreatePVZ(params operations.PostPvzParams) middleware
 	}
 
 	if h.mt != nil {
-		h.mt.IncreaseHits()
+		h.mt.IncreaseHitsPVZTotal()
 	} else {
 		log.LogHandlerError(logger, errors.New("metrics collector is nil"), http.StatusInternalServerError)
 	}
@@ -98,7 +98,11 @@ func (h *PVZHandler) HandleCreateReception(params operations.PostReceptionsParam
 			Message: swag.String("Ошибка при создании приемки"),
 		})
 	}
-
+	if h.mt != nil {
+		h.mt.IncreaseHitsReTotal()
+	} else {
+		log.LogHandlerError(logger, errors.New("metrics collector is nil"), http.StatusInternalServerError)
+	}
 	return operations.NewPostReceptionsCreated().WithPayload(reception)
 }
 
@@ -133,7 +137,11 @@ func (h *PVZHandler) HandleAddProductToReception(params operations.PostProductsP
 			Message: swag.String("Ошибка при добавлении товара в приемку"),
 		})
 	}
-
+	if h.mt != nil {
+		h.mt.IncreaseHitsProductTotal()
+	} else {
+		log.LogHandlerError(logger, errors.New("metrics collector is nil"), http.StatusInternalServerError)
+	}
 	return operations.NewPostProductsCreated().WithPayload(product)
 }
 
