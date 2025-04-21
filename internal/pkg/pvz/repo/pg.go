@@ -2,16 +2,16 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
+
+	"log/slog"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/totorialman/go-task-avito/internal/pkg/utils/log"
 	"github.com/totorialman/go-task-avito/models"
-	"log/slog"
 )
 
 type PVZRepo struct {
@@ -185,6 +185,7 @@ func (r *PVZRepo) GetPVZsWithReceptions(ctx context.Context, startDate, endDate 
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 
+		// Создание PVZ
 		if _, exists := pvzsMap[pvzID]; !exists {
 			pvzsMap[pvzID] = map[string]interface{}{
 				"pvz": &models.PVZ{
@@ -192,20 +193,23 @@ func (r *PVZRepo) GetPVZsWithReceptions(ctx context.Context, startDate, endDate 
 					City:             &city,
 					RegistrationDate: strfmt.DateTime(registrationDate),
 				},
-				"receptions": []map[string]interface{}{},
+				"receptions": make(map[strfmt.UUID]map[string]interface{}),
 			}
 		}
-
 		pvzData := pvzsMap[pvzID]
+		receptions := pvzData["receptions"].(map[strfmt.UUID]map[string]interface{})
 
-		reception := map[string]interface{}{
-			"reception": &models.Reception{
-				ID:       receptionID,
-				PvzID:    &pvzID,
-				DateTime: (*strfmt.DateTime)(&receptionDate),
-				Status:   &receptionStatus,
-			},
-			"products": []models.Product{},
+		// Создание или обновление приёмки
+		if _, exists := receptions[receptionID]; !exists {
+			receptions[receptionID] = map[string]interface{}{
+				"reception": &models.Reception{
+					ID:       receptionID,
+					PvzID:    &pvzID,
+					DateTime: (*strfmt.DateTime)(&receptionDate),
+					Status:   &receptionStatus,
+				},
+				"products": []models.Product{},
+			}
 		}
 
 		if productID != "" {
@@ -215,12 +219,8 @@ func (r *PVZRepo) GetPVZsWithReceptions(ctx context.Context, startDate, endDate 
 				DateTime:    strfmt.DateTime(productDateTime),
 				Type:        &productType,
 			}
-			reception["products"] = append(reception["products"].([]models.Product), product)
+			receptions[receptionID]["products"] = append(receptions[receptionID]["products"].([]models.Product), product)
 		}
-
-		receptions := pvzData["receptions"].([]map[string]interface{})
-		receptions = append(receptions, reception)
-		pvzData["receptions"] = receptions
 	}
 
 	if err := rows.Err(); err != nil {
@@ -230,6 +230,12 @@ func (r *PVZRepo) GetPVZsWithReceptions(ctx context.Context, startDate, endDate 
 
 	var result []map[string]interface{}
 	for _, pvzData := range pvzsMap {
+		receptionMap := pvzData["receptions"].(map[strfmt.UUID]map[string]interface{})
+		var receptionList []map[string]interface{}
+		for _, v := range receptionMap {
+			receptionList = append(receptionList, v)
+		}
+		pvzData["receptions"] = receptionList
 		result = append(result, pvzData)
 	}
 
