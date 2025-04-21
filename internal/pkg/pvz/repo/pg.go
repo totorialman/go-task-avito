@@ -185,7 +185,6 @@ func (r *PVZRepo) GetPVZsWithReceptions(ctx context.Context, startDate, endDate 
 			return nil, fmt.Errorf("error scanning row: %w", err)
 		}
 
-		// Создание PVZ
 		if _, exists := pvzsMap[pvzID]; !exists {
 			pvzsMap[pvzID] = map[string]interface{}{
 				"pvz": &models.PVZ{
@@ -199,7 +198,6 @@ func (r *PVZRepo) GetPVZsWithReceptions(ctx context.Context, startDate, endDate 
 		pvzData := pvzsMap[pvzID]
 		receptions := pvzData["receptions"].(map[strfmt.UUID]map[string]interface{})
 
-		// Создание или обновление приёмки
 		if _, exists := receptions[receptionID]; !exists {
 			receptions[receptionID] = map[string]interface{}{
 				"reception": &models.Reception{
