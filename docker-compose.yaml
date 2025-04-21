@@ -11,7 +11,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       MAIN_LOG_FILE: ${MAIN_LOG_FILE}
     volumes:
-      - ../:/var/log/
+      - ./:/var/log/
     depends_on:
       postgres:
         condition: service_healthy

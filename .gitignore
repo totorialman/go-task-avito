@@ -1,0 +1,6 @@
+coverprofile.tmp
+coverprofile_.tmp
+coverage.html
+
+*.tmp
+*.log
