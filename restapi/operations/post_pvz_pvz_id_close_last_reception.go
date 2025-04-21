@@ -12,16 +12,16 @@ import (
 )
 
 // PostPvzPvzIDCloseLastReceptionHandlerFunc turns a function with the right signature into a post pvz pvz ID close last reception handler
-type PostPvzPvzIDCloseLastReceptionHandlerFunc func(PostPvzPvzIDCloseLastReceptionParams, interface{}) middleware.Responder
+type PostPvzPvzIDCloseLastReceptionHandlerFunc func(PostPvzPvzIDCloseLastReceptionParams) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostPvzPvzIDCloseLastReceptionHandlerFunc) Handle(params PostPvzPvzIDCloseLastReceptionParams, principal interface{}) middleware.Responder {
-	return fn(params, principal)
+func (fn PostPvzPvzIDCloseLastReceptionHandlerFunc) Handle(params PostPvzPvzIDCloseLastReceptionParams) middleware.Responder {
+	return fn(params)
 }
 
 // PostPvzPvzIDCloseLastReceptionHandler interface for that can handle valid post pvz pvz ID close last reception params
 type PostPvzPvzIDCloseLastReceptionHandler interface {
-	Handle(PostPvzPvzIDCloseLastReceptionParams, interface{}) middleware.Responder
+	Handle(PostPvzPvzIDCloseLastReceptionParams) middleware.Responder
 }
 
 // NewPostPvzPvzIDCloseLastReception creates a new http.Handler for the post pvz pvz ID close last reception operation
@@ -45,25 +45,12 @@ func (o *PostPvzPvzIDCloseLastReception) ServeHTTP(rw http.ResponseWriter, r *ht
 		*r = *rCtx
 	}
 	var Params = NewPostPvzPvzIDCloseLastReceptionParams()
-	uprinc, aCtx, err := o.Context.Authorize(r, route)
-	if err != nil {
-		o.Context.Respond(rw, r, route.Produces, route, err)
-		return
-	}
-	if aCtx != nil {
-		*r = *aCtx
-	}
-	var principal interface{}
-	if uprinc != nil {
-		principal = uprinc.(interface{}) // this is really a interface{}, I promise
-	}
-
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params, principal) // actually handle the request
+	res := o.Handler.Handle(Params) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }

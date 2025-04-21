@@ -30,13 +30,11 @@ var (
 
 type AuthRepo interface {
 	InsertUser(ctx context.Context, userID strfmt.UUID, email string, hashedPassword string, role string) error
-
 	GetUserCredsByEmail(ctx context.Context, email string) (userID uuid.UUID, role string, passwordHash string, err error)
 }
 
 type AuthUsecase interface {
 	GenerateDummyToken(ctx context.Context, role string) (string, error)
-	SignUp(ctx context.Context, email string, password string, role string) (*models.User, string, string, error)
-
-	Login(ctx context.Context, email, password string) (*models.User, string, string, error)
+	SignUp(ctx context.Context, email string, password string, role string) (*models.User, string, error)
+	Login(ctx context.Context, email, password string) (*models.User, string, error)
 }

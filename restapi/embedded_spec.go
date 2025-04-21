@@ -119,11 +119,6 @@ func init() {
     },
     "/products": {
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Добавление товара в текущую приемку (только для сотрудников ПВЗ)",
         "parameters": [
           {
@@ -177,11 +172,6 @@ func init() {
     },
     "/pvz": {
       "get": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Получение списка ПВЗ с фильтрацией по дате приемки и пагинацией",
         "parameters": [
           {
@@ -247,11 +237,6 @@ func init() {
         }
       },
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Создание ПВЗ (только для модераторов)",
         "parameters": [
           {
@@ -287,11 +272,6 @@ func init() {
     },
     "/pvz/{pvzId}/close_last_reception": {
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Закрытие последней открытой приемки товаров в рамках ПВЗ",
         "parameters": [
           {
@@ -326,11 +306,6 @@ func init() {
     },
     "/pvz/{pvzId}/delete_last_product": {
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Удаление последнего добавленного товара из текущей приемки (LIFO, только для сотрудников ПВЗ)",
         "parameters": [
           {
@@ -362,11 +337,6 @@ func init() {
     },
     "/receptions": {
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Создание новой приемки товаров (только для сотрудников ПВЗ)",
         "parameters": [
           {
@@ -581,13 +551,6 @@ func init() {
         }
       }
     }
-  },
-  "securityDefinitions": {
-    "bearerAuth": {
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header"
-    }
   }
 }`))
 	FlatSwaggerJSON = json.RawMessage([]byte(`{
@@ -692,11 +655,6 @@ func init() {
     },
     "/products": {
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Добавление товара в текущую приемку (только для сотрудников ПВЗ)",
         "parameters": [
           {
@@ -750,11 +708,6 @@ func init() {
     },
     "/pvz": {
       "get": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Получение списка ПВЗ с фильтрацией по дате приемки и пагинацией",
         "parameters": [
           {
@@ -798,11 +751,6 @@ func init() {
         }
       },
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Создание ПВЗ (только для модераторов)",
         "parameters": [
           {
@@ -838,11 +786,6 @@ func init() {
     },
     "/pvz/{pvzId}/close_last_reception": {
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Закрытие последней открытой приемки товаров в рамках ПВЗ",
         "parameters": [
           {
@@ -877,11 +820,6 @@ func init() {
     },
     "/pvz/{pvzId}/delete_last_product": {
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Удаление последнего добавленного товара из текущей приемки (LIFO, только для сотрудников ПВЗ)",
         "parameters": [
           {
@@ -913,11 +851,6 @@ func init() {
     },
     "/receptions": {
       "post": {
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
         "summary": "Создание новой приемки товаров (только для сотрудников ПВЗ)",
         "parameters": [
           {
@@ -1159,13 +1092,6 @@ func init() {
           ]
         }
       }
-    }
-  },
-  "securityDefinitions": {
-    "bearerAuth": {
-      "type": "apiKey",
-      "name": "Authorization",
-      "in": "header"
     }
   }
 }`))

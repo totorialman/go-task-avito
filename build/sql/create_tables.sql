@@ -10,16 +10,15 @@ CREATE TABLE users (
 CREATE TABLE pvz (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     city VARCHAR(100) NOT NULL CHECK (city IN ('Москва', 'Санкт-Петербург', 'Казань')),
-    registration_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    created_by UUID REFERENCES users(id)
+    registration_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE receptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     pvz_id UUID NOT NULL REFERENCES pvz(id),
     date_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('in_progress', 'closed')) DEFAULT 'in_progress',
-    created_by UUID REFERENCES users(id)
+    status VARCHAR(20) NOT NULL CHECK (status IN ('in_progress', 'closed')) DEFAULT 'in_progress'
 );
 
 CREATE TABLE products (

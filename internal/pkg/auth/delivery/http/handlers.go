@@ -2,15 +2,19 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
+
+	"log/slog"
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/swag"
 	"github.com/totorialman/go-task-avito/internal/pkg/auth"
-	"github.com/totorialman/go-task-avito/internal/pkg/metrics"
+	"github.com/totorialman/go-task-avito/internal/pkg/utils/log"
 	utils "github.com/totorialman/go-task-avito/internal/pkg/utils/sendError"
 	"github.com/totorialman/go-task-avito/models"
 	"github.com/totorialman/go-task-avito/restapi/operations"
@@ -19,17 +23,17 @@ import (
 type AuthHandler struct {
 	authUsecase auth.AuthUsecase
 	secret      string
-	mt          *metrics.ProductMetrics
 }
 
-func NewAuthHandler(authUsecase auth.AuthUsecase, mt *metrics.ProductMetrics) *AuthHandler {
-	return &AuthHandler{authUsecase: authUsecase, secret: os.Getenv("JWT_SECRET"),mt: mt}
+func NewAuthHandler(authUsecase auth.AuthUsecase) *AuthHandler {
+	return &AuthHandler{authUsecase: authUsecase, secret: os.Getenv("JWT_SECRET")}
 }
 
 func (h *AuthHandler) HandleDummyLogin(params operations.PostDummyLoginParams) middleware.Responder {
-	h.mt.IncreaseHits()
+	logger := log.GetLoggerFromContext(params.HTTPRequest.Context()).With(slog.String("func", log.GetFuncName()))
+
 	if params.Body.Role == nil {
-		
+		log.LogHandlerError(logger, errors.New("role is required"), http.StatusBadRequest)
 		return operations.NewPostDummyLoginBadRequest().WithPayload(
 			&models.Error{Message: swag.String("role is required")},
 		)
@@ -37,10 +41,13 @@ func (h *AuthHandler) HandleDummyLogin(params operations.PostDummyLoginParams) m
 
 	token, err := h.authUsecase.GenerateDummyToken(params.HTTPRequest.Context(), *params.Body.Role)
 	if err != nil {
+		log.LogHandlerError(logger, fmt.Errorf("error generating dummy token: %w", err), http.StatusBadRequest)
 		return operations.NewPostDummyLoginBadRequest().WithPayload(
 			&models.Error{Message: swag.String(err.Error())},
 		)
 	}
+
+	logger.Info("Dummy token generated successfully")
 	return middleware.ResponderFunc(func(w http.ResponseWriter, p runtime.Producer) {
 		http.SetCookie(w, &http.Cookie{
 			Name:     "JWT",
@@ -53,30 +60,30 @@ func (h *AuthHandler) HandleDummyLogin(params operations.PostDummyLoginParams) m
 		})
 
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte("Успешная авторизация"))
-		if err != nil {
-			http.Error(w, "Ошибка при отправке ответа", http.StatusInternalServerError)
-		}
-		//_ = p.Produce(w, models.Token(token))
+		_ = p.Produce(w, models.Token(token))
 	})
 }
 
 func (h *AuthHandler) HandleLogin(params operations.PostLoginParams) middleware.Responder {
+	logger := log.GetLoggerFromContext(params.HTTPRequest.Context()).With(slog.String("func", log.GetFuncName()))
 
 	if params.Body.Email == nil || params.Body.Password == nil {
+		log.LogHandlerError(logger, errors.New("email and password are required"), http.StatusUnauthorized)
 		return operations.NewPostLoginUnauthorized().WithPayload(
 			&models.Error{Message: swag.String("email and password are required")},
 		)
 	}
 
 	email := string(*params.Body.Email)
-	_, token, csrfToken, err := h.authUsecase.Login(params.HTTPRequest.Context(), email, *params.Body.Password)
+	_, token, err := h.authUsecase.Login(params.HTTPRequest.Context(), email, *params.Body.Password)
 	if err != nil {
+		log.LogHandlerError(logger, fmt.Errorf("login failed: %w", err), http.StatusUnauthorized)
 		return operations.NewPostLoginUnauthorized().WithPayload(
 			&models.Error{Message: swag.String(err.Error())},
 		)
 	}
 
+	logger.Info("User logged in successfully", slog.String("email", email))
 	return middleware.ResponderFunc(func(w http.ResponseWriter, p runtime.Producer) {
 		http.SetCookie(w, &http.Cookie{
 			Name:     "JWT",
@@ -87,28 +94,16 @@ func (h *AuthHandler) HandleLogin(params operations.PostLoginParams) middleware.
 			Path:     "/",
 			SameSite: http.SameSiteLaxMode,
 		})
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "CSRF-Token",
-			Value:    csrfToken,
-			HttpOnly: false,
-			Secure:   false,
-			Expires:  time.Now().Add(24 * time.Hour),
-			Path:     "/",
-			SameSite: http.SameSiteStrictMode,
-		})
-		w.Header().Set("X-CSRF-Token", csrfToken)
-
 		w.WriteHeader(http.StatusOK)
-		_, err := w.Write([]byte("Успешная авторизация"))
-		if err != nil {
-			http.Error(w, "Ошибка при отправке ответа", http.StatusInternalServerError)
-		}
+		_ = p.Produce(w, models.Token(token))
 	})
 }
 
 func (h *AuthHandler) HandleSignUp(params operations.PostRegisterParams) middleware.Responder {
+	logger := log.GetLoggerFromContext(params.HTTPRequest.Context()).With(slog.String("func", log.GetFuncName()))
+
 	if params.Body.Email == nil || params.Body.Password == nil || params.Body.Role == nil {
+		log.LogHandlerError(logger, errors.New("email, password and role are required"), http.StatusBadRequest)
 		return operations.NewPostRegisterBadRequest().WithPayload(
 			&models.Error{Message: swag.String("email, password and role are required")},
 		)
@@ -118,13 +113,15 @@ func (h *AuthHandler) HandleSignUp(params operations.PostRegisterParams) middlew
 	password := string(*params.Body.Password)
 	role := string(*params.Body.Role)
 
-	user, token, csrfToken, err := h.authUsecase.SignUp(params.HTTPRequest.Context(), email, password, role)
+	user, token, err := h.authUsecase.SignUp(params.HTTPRequest.Context(), email, password, role)
 	if err != nil {
+		log.LogHandlerError(logger, fmt.Errorf("signup failed: %w", err), http.StatusBadRequest)
 		return operations.NewPostRegisterBadRequest().WithPayload(
 			&models.Error{Message: swag.String(err.Error())},
 		)
 	}
 
+	logger.Info("User signed up successfully", slog.String("email", email), slog.String("role", role))
 	return middleware.ResponderFunc(func(w http.ResponseWriter, p runtime.Producer) {
 		http.SetCookie(w, &http.Cookie{
 			Name:     "JWT",
@@ -134,21 +131,10 @@ func (h *AuthHandler) HandleSignUp(params operations.PostRegisterParams) middlew
 			Expires:  time.Now().Add(24 * time.Hour),
 			Path:     "/",
 		})
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     "CSRF-Token",
-			Value:    csrfToken,
-			HttpOnly: false,
-			Secure:   true,
-			Expires:  time.Now().Add(24 * time.Hour),
-			SameSite: http.SameSiteStrictMode,
-			Path:     "/",
-		})
-
-		w.Header().Set("X-CSRF-Token", csrfToken)
 		w.Header().Set("Content-Type", "application/json")
 
 		if err := json.NewEncoder(w).Encode(user); err != nil {
+			log.LogHandlerError(logger, fmt.Errorf("JSON encoding error: %w", err), http.StatusInternalServerError)
 			utils.SendError(w, "Ошибка формирования JSON", http.StatusInternalServerError)
 		}
 	})

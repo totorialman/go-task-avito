@@ -11,7 +11,6 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/totorialman/go-task-avito/restapi/operations"
-
 )
 
 //go:generate swagger generate server --target ..\..\go-task-avito --name BackendService --spec ..\swagger.yaml --principal interface{}
@@ -38,21 +37,8 @@ func configureAPI(api *operations.BackendServiceAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	// Applies when the "Authorization" header is set
-	if api.BearerAuthAuth == nil {
-		api.BearerAuthAuth = func(token string) (interface{}, error) {
-			return nil, errors.NotImplemented("api key auth (bearerAuth) Authorization from header param [Authorization] has not yet been implemented")
-		}
-	}
-
-	// Set your custom authorizer if needed. Default one is security.Authorized()
-	// Expected interface runtime.Authorizer
-	//
-	// Example:
-	// api.APIAuthorizer = security.Authorized()
-
 	if api.GetPvzHandler == nil {
-		api.GetPvzHandler = operations.GetPvzHandlerFunc(func(params operations.GetPvzParams, principal interface{}) middleware.Responder {
+		api.GetPvzHandler = operations.GetPvzHandlerFunc(func(params operations.GetPvzParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.GetPvz has not yet been implemented")
 		})
 	}
@@ -67,27 +53,27 @@ func configureAPI(api *operations.BackendServiceAPI) http.Handler {
 		})
 	}
 	if api.PostProductsHandler == nil {
-		api.PostProductsHandler = operations.PostProductsHandlerFunc(func(params operations.PostProductsParams, principal interface{}) middleware.Responder {
+		api.PostProductsHandler = operations.PostProductsHandlerFunc(func(params operations.PostProductsParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostProducts has not yet been implemented")
 		})
 	}
 	if api.PostPvzHandler == nil {
-		api.PostPvzHandler = operations.PostPvzHandlerFunc(func(params operations.PostPvzParams, principal interface{}) middleware.Responder {
+		api.PostPvzHandler = operations.PostPvzHandlerFunc(func(params operations.PostPvzParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostPvz has not yet been implemented")
 		})
 	}
 	if api.PostPvzPvzIDCloseLastReceptionHandler == nil {
-		api.PostPvzPvzIDCloseLastReceptionHandler = operations.PostPvzPvzIDCloseLastReceptionHandlerFunc(func(params operations.PostPvzPvzIDCloseLastReceptionParams, principal interface{}) middleware.Responder {
+		api.PostPvzPvzIDCloseLastReceptionHandler = operations.PostPvzPvzIDCloseLastReceptionHandlerFunc(func(params operations.PostPvzPvzIDCloseLastReceptionParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostPvzPvzIDCloseLastReception has not yet been implemented")
 		})
 	}
 	if api.PostPvzPvzIDDeleteLastProductHandler == nil {
-		api.PostPvzPvzIDDeleteLastProductHandler = operations.PostPvzPvzIDDeleteLastProductHandlerFunc(func(params operations.PostPvzPvzIDDeleteLastProductParams, principal interface{}) middleware.Responder {
+		api.PostPvzPvzIDDeleteLastProductHandler = operations.PostPvzPvzIDDeleteLastProductHandlerFunc(func(params operations.PostPvzPvzIDDeleteLastProductParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostPvzPvzIDDeleteLastProduct has not yet been implemented")
 		})
 	}
 	if api.PostReceptionsHandler == nil {
-		api.PostReceptionsHandler = operations.PostReceptionsHandlerFunc(func(params operations.PostReceptionsParams, principal interface{}) middleware.Responder {
+		api.PostReceptionsHandler = operations.PostReceptionsHandlerFunc(func(params operations.PostReceptionsParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostReceptions has not yet been implemented")
 		})
 	}

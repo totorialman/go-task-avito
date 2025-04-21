@@ -12,12 +12,6 @@ consumes:
 produces:
   - application/json
 
-securityDefinitions:
-  bearerAuth:
-    type: apiKey
-    name: Authorization
-    in: header
-
 definitions:
   Token:
     type: string
@@ -174,8 +168,6 @@ paths:
   /pvz:
     post:
       summary: Создание ПВЗ (только для модераторов)
-      security:
-        - bearerAuth: []
       parameters:
         - in: body
           name: body
@@ -198,8 +190,6 @@ paths:
 
     get:
       summary: Получение списка ПВЗ с фильтрацией по дате приемки и пагинацией
-      security:
-        - bearerAuth: []
       parameters:
         - name: startDate
           in: query
@@ -249,8 +239,6 @@ paths:
   /pvz/{pvzId}/close_last_reception:
     post:
       summary: Закрытие последней открытой приемки товаров в рамках ПВЗ
-      security:
-        - bearerAuth: []
       parameters:
         - name: pvzId
           in: path
@@ -274,8 +262,6 @@ paths:
   /pvz/{pvzId}/delete_last_product:
     post:
       summary: Удаление последнего добавленного товара из текущей приемки (LIFO, только для сотрудников ПВЗ)
-      security:
-        - bearerAuth: []
       parameters:
         - name: pvzId
           in: path
@@ -297,8 +283,6 @@ paths:
   /receptions:
     post:
       summary: Создание новой приемки товаров (только для сотрудников ПВЗ)
-      security:
-        - bearerAuth: []
       parameters:
         - in: body
           name: body
@@ -327,8 +311,6 @@ paths:
   /products:
     post:
       summary: Добавление товара в текущую приемку (только для сотрудников ПВЗ)
-      security:
-        - bearerAuth: []
       parameters:
         - in: body
           name: body

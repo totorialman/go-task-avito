@@ -2,12 +2,14 @@ package pg
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
+	"net/http"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/gofrs/uuid"
 	"github.com/jackc/pgtype/pgxtype"
 	"github.com/totorialman/go-task-avito/internal/pkg/utils/log"
+	"log/slog"
 )
 
 const (
@@ -36,7 +38,7 @@ func (r *AuthRepo) GetUserCredsByEmail(ctx context.Context, email string) (uuid.
 	var role, hash string
 	err := r.db.QueryRow(ctx, getUserCredsQuery, email).Scan(&id, &role, &hash)
 	if err != nil {
-		logger.Error("GetUserCredsByEmail error: " + err.Error())
+		log.LogHandlerError(logger, fmt.Errorf("failed to get user credentials: %w", err), http.StatusInternalServerError)
 		return uuid.Nil, "", "", err
 	}
 
@@ -49,7 +51,7 @@ func (repo *AuthRepo) InsertUser(ctx context.Context, userID strfmt.UUID, email 
 	query := `INSERT INTO users (id, email, role, password_hash) VALUES ($1, $2, $3, $4)`
 	_, err := repo.db.Exec(ctx, query, userID, email, role, hashedPassword)
 	if err != nil {
-		logger.Error("Failed to insert user into database: %w", err)
+		log.LogHandlerError(logger, fmt.Errorf("failed to insert user: %w", err), http.StatusInternalServerError)
 		return err
 	}
 

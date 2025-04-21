@@ -18,16 +18,16 @@ import (
 )
 
 // PostProductsHandlerFunc turns a function with the right signature into a post products handler
-type PostProductsHandlerFunc func(PostProductsParams, interface{}) middleware.Responder
+type PostProductsHandlerFunc func(PostProductsParams) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostProductsHandlerFunc) Handle(params PostProductsParams, principal interface{}) middleware.Responder {
-	return fn(params, principal)
+func (fn PostProductsHandlerFunc) Handle(params PostProductsParams) middleware.Responder {
+	return fn(params)
 }
 
 // PostProductsHandler interface for that can handle valid post products params
 type PostProductsHandler interface {
-	Handle(PostProductsParams, interface{}) middleware.Responder
+	Handle(PostProductsParams) middleware.Responder
 }
 
 // NewPostProducts creates a new http.Handler for the post products operation
@@ -51,25 +51,12 @@ func (o *PostProducts) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		*r = *rCtx
 	}
 	var Params = NewPostProductsParams()
-	uprinc, aCtx, err := o.Context.Authorize(r, route)
-	if err != nil {
-		o.Context.Respond(rw, r, route.Produces, route, err)
-		return
-	}
-	if aCtx != nil {
-		*r = *aCtx
-	}
-	var principal interface{}
-	if uprinc != nil {
-		principal = uprinc.(interface{}) // this is really a interface{}, I promise
-	}
-
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params, principal) // actually handle the request
+	res := o.Handler.Handle(Params) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }

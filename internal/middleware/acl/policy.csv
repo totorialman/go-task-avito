@@ -1,10 +1,5 @@
 p, moderator, /pvz, POST
-p, employee, /intake, POST
-p, employee, /intake, PUT
-p, employee, /product, POST
-p, employee, /product, DELETE
-p, moderator, /pvz/filter, GET
-p, employee, /pvz/filter, GET
-
-g, alice@example.com, moderator
-g, bob@example.com, employee
+p, employee, /receptions, POST
+p, employee, /products, POST
+p, employee, /pvz/:pvzId/delete_last_product, POST
+p, employee, /pvz/:pvzId/close_last_reception, POST

@@ -23,11 +23,15 @@ import (
 	authHandler "github.com/totorialman/go-task-avito/internal/pkg/auth/delivery/http"
 	authRepo "github.com/totorialman/go-task-avito/internal/pkg/auth/repo"
 	authUsecase "github.com/totorialman/go-task-avito/internal/pkg/auth/usecase"
+
+	pvzHandler "github.com/totorialman/go-task-avito/internal/pkg/pvz/delivery/http"
+	pvzRepo "github.com/totorialman/go-task-avito/internal/pkg/pvz/repo"
+	pvzUsecase "github.com/totorialman/go-task-avito/internal/pkg/pvz/usecase"
 	"github.com/totorialman/go-task-avito/internal/pkg/metrics"
 )
 
 func main() {
-	logFile, err := os.OpenFile("main.log", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	logFile, err := os.OpenFile(os.Getenv("MAIN_LOG_FILE"), os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		fmt.Println("ошибка открытия файла логов:", err)
 		return
@@ -56,31 +60,37 @@ func main() {
 
 	authRepo := authRepo.NewAuthRepo(db)
 	authUsecase := authUsecase.NewAuthUsecase(authRepo)
-	authHandler := authHandler.NewAuthHandler(authUsecase, mt0)
-	
+	authHandler := authHandler.NewAuthHandler(authUsecase)
+
+	pvzRepo := pvzRepo.NewPVZRepo(db)
+	pvzUsecase := pvzUsecase.NewPVZUsecase(pvzRepo)
+	pvzHandler := pvzHandler.NewPVZHandler(pvzUsecase, mt0)
+
 	mt, err := metrics.NewHttpMetrics()
 	if err != nil {
 		log.Fatal(err)
 	}
 	middl := metricsmw.CreateHttpMetricsMiddleware(mt)
+
 	swaggerSpec, err := loads.Embedded(restapi.SwaggerJSON, restapi.FlatSwaggerJSON)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	api := operations.NewBackendServiceAPI(swaggerSpec)
-	configureAPI(api, authHandler)
 
-	handler := api.Serve(nil)
-	wrapped := middl(acl.NewAclMiddleware(handler))
+	api := operations.NewBackendServiceAPI(swaggerSpec)
+	configureAPI(api, authHandler, pvzHandler)
 
 	server := restapi.NewServer(api)
-	server.SetHandler(wrapped)
-
 	defer server.Shutdown()
+
+	server.ConfigureAPI()
+
+	handler := server.GetHandler()
+	wrapped := middl(acl.NewAclMiddleware(handler))
+	server.SetHandler(wrapped)
 
 	r := mux.NewRouter()
 	r.PathPrefix("/metrics").Handler(promhttp.Handler())
-
 	http.Handle("/", r)
 	httpSrv := http.Server{Handler: r, Addr: "0.0.0.0:9000"}
 	go func() {
@@ -88,16 +98,14 @@ func main() {
 			logger.Error("fail httpSrv.ListenAndServe")
 		}
 	}()
-	
-	
 
 	server.Host = "0.0.0.0"
 	server.Port = 8080
 	if err := server.Serve(); err != nil {
 		logger.Error("Ошибка запуска сервера", slog.String("err", err.Error()))
 	}
-
 }
+
 
 func errorAsJSON(err error) []byte {
 	//nolint:errchkjson
@@ -107,7 +115,7 @@ func errorAsJSON(err error) []byte {
 	return b
 }
 
-func configureAPI(api *operations.BackendServiceAPI, handler *authHandler.AuthHandler) {
+func configureAPI(api *operations.BackendServiceAPI, handlerAuth *authHandler.AuthHandler, handlerPVZ *pvzHandler.PVZHandler) {
 	api.ServeError = func(rw http.ResponseWriter, r *http.Request, err error) {
 		rw.Header().Set("Content-Type", "application/json")
 		switch e := err.(type) {
@@ -118,9 +126,17 @@ func configureAPI(api *operations.BackendServiceAPI, handler *authHandler.AuthHa
 			rw.WriteHeader(http.StatusInternalServerError)
 		}
 	}
-	api.PostDummyLoginHandler = operations.PostDummyLoginHandlerFunc(handler.HandleDummyLogin)
-	api.PostLoginHandler = operations.PostLoginHandlerFunc(handler.HandleLogin)
-	api.PostRegisterHandler = operations.PostRegisterHandlerFunc(handler.HandleSignUp)
+	log.Println("Регистрируем хендлер POST /pvz...")
+	api.PostDummyLoginHandler = operations.PostDummyLoginHandlerFunc(handlerAuth.HandleDummyLogin)
+	api.PostLoginHandler = operations.PostLoginHandlerFunc(handlerAuth.HandleLogin)
+	api.PostRegisterHandler = operations.PostRegisterHandlerFunc(handlerAuth.HandleSignUp)
+	api.PostPvzHandler = operations.PostPvzHandlerFunc(handlerPVZ.HandleCreatePVZ)
+	api.PostReceptionsHandler = operations.PostReceptionsHandlerFunc(handlerPVZ.HandleCreateReception)
+	api.PostProductsHandler = operations.PostProductsHandlerFunc(handlerPVZ.HandleAddProductToReception)
+	api.PostPvzPvzIDDeleteLastProductHandler = operations.PostPvzPvzIDDeleteLastProductHandlerFunc(handlerPVZ.HandleDeleteLastProduct)
+	api.PostPvzPvzIDCloseLastReceptionHandler = operations.PostPvzPvzIDCloseLastReceptionHandlerFunc(handlerPVZ.HandleCloseLastReception)
+	api.GetPvzHandler = operations.GetPvzHandlerFunc(handlerPVZ.HandleGetPVZs)
+
 }
 
 func initDB(logger *slog.Logger) (*pgxpool.Pool, error) {

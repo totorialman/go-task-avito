@@ -15,6 +15,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/mux v1.8.1
 	github.com/jackc/pgtype v1.14.4
+	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/prometheus/client_golang v1.22.0
@@ -36,6 +37,7 @@ require (
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect
 	github.com/jackc/pgconn v1.14.3 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -47,6 +49,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect

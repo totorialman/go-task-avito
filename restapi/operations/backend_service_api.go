@@ -42,7 +42,7 @@ func NewBackendServiceAPI(spec *loads.Document) *BackendServiceAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
-		GetPvzHandler: GetPvzHandlerFunc(func(params GetPvzParams, principal interface{}) middleware.Responder {
+		GetPvzHandler: GetPvzHandlerFunc(func(params GetPvzParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetPvz has not yet been implemented")
 		}),
 		PostDummyLoginHandler: PostDummyLoginHandlerFunc(func(params PostDummyLoginParams) middleware.Responder {
@@ -51,31 +51,24 @@ func NewBackendServiceAPI(spec *loads.Document) *BackendServiceAPI {
 		PostLoginHandler: PostLoginHandlerFunc(func(params PostLoginParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostLogin has not yet been implemented")
 		}),
-		PostProductsHandler: PostProductsHandlerFunc(func(params PostProductsParams, principal interface{}) middleware.Responder {
+		PostProductsHandler: PostProductsHandlerFunc(func(params PostProductsParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostProducts has not yet been implemented")
 		}),
-		PostPvzHandler: PostPvzHandlerFunc(func(params PostPvzParams, principal interface{}) middleware.Responder {
+		PostPvzHandler: PostPvzHandlerFunc(func(params PostPvzParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostPvz has not yet been implemented")
 		}),
-		PostPvzPvzIDCloseLastReceptionHandler: PostPvzPvzIDCloseLastReceptionHandlerFunc(func(params PostPvzPvzIDCloseLastReceptionParams, principal interface{}) middleware.Responder {
+		PostPvzPvzIDCloseLastReceptionHandler: PostPvzPvzIDCloseLastReceptionHandlerFunc(func(params PostPvzPvzIDCloseLastReceptionParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostPvzPvzIDCloseLastReception has not yet been implemented")
 		}),
-		PostPvzPvzIDDeleteLastProductHandler: PostPvzPvzIDDeleteLastProductHandlerFunc(func(params PostPvzPvzIDDeleteLastProductParams, principal interface{}) middleware.Responder {
+		PostPvzPvzIDDeleteLastProductHandler: PostPvzPvzIDDeleteLastProductHandlerFunc(func(params PostPvzPvzIDDeleteLastProductParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostPvzPvzIDDeleteLastProduct has not yet been implemented")
 		}),
-		PostReceptionsHandler: PostReceptionsHandlerFunc(func(params PostReceptionsParams, principal interface{}) middleware.Responder {
+		PostReceptionsHandler: PostReceptionsHandlerFunc(func(params PostReceptionsParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostReceptions has not yet been implemented")
 		}),
 		PostRegisterHandler: PostRegisterHandlerFunc(func(params PostRegisterParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostRegister has not yet been implemented")
 		}),
-
-		// Applies when the "Authorization" header is set
-		BearerAuthAuth: func(token string) (interface{}, error) {
-			return nil, errors.NotImplemented("api key auth (bearerAuth) Authorization from header param [Authorization] has not yet been implemented")
-		},
-		// default authorizer is authorized meaning no requests are blocked
-		APIAuthorizer: security.Authorized(),
 	}
 }
 
@@ -111,13 +104,6 @@ type BackendServiceAPI struct {
 	// JSONProducer registers a producer for the following mime types:
 	//   - application/json
 	JSONProducer runtime.Producer
-
-	// BearerAuthAuth registers a function that takes a token and returns a principal
-	// it performs authentication based on an api key Authorization provided in the header
-	BearerAuthAuth func(string) (interface{}, error)
-
-	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
-	APIAuthorizer runtime.Authorizer
 
 	// GetPvzHandler sets the operation handler for the get pvz operation
 	GetPvzHandler GetPvzHandler
@@ -214,10 +200,6 @@ func (o *BackendServiceAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
-	if o.BearerAuthAuth == nil {
-		unregistered = append(unregistered, "AuthorizationAuth")
-	}
-
 	if o.GetPvzHandler == nil {
 		unregistered = append(unregistered, "GetPvzHandler")
 	}
@@ -260,21 +242,12 @@ func (o *BackendServiceAPI) ServeErrorFor(operationID string) func(http.Response
 
 // AuthenticatorsFor gets the authenticators for the specified security schemes
 func (o *BackendServiceAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
-	result := make(map[string]runtime.Authenticator)
-	for name := range schemes {
-		switch name {
-		case "bearerAuth":
-			scheme := schemes[name]
-			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, o.BearerAuthAuth)
-
-		}
-	}
-	return result
+	return nil
 }
 
 // Authorizer returns the registered authorizer
 func (o *BackendServiceAPI) Authorizer() runtime.Authorizer {
-	return o.APIAuthorizer
+	return nil
 }
 
 // ConsumersFor gets the consumers for the specified media types.
